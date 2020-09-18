@@ -89,6 +89,11 @@ class Main(QMainWindow, MainUI):
         # adding user;
         self.pushButton_30.clicked.connect(self.add_user)
 
+        # checking user data
+        self.pushButton_32.clicked.connect(self.check_user)
+        # save user after edining
+        self.pushButton_31.clicked.connect(self.edit_user)
+
     ''' lgoin tap '''
     def login(self):
         pass
@@ -169,6 +174,15 @@ class Main(QMainWindow, MainUI):
         self.db.commit()
         print("------Branch Inserted Successfully------")
 
+        # clear the lineEdit after insertion
+        self.lineEdit_13.clear()
+        self.lineEdit_31.clear()
+        self.lineEdit_30.clear()
+
+        # show successfully added branch
+        self.statusBar().showMessage('Branch Added Successfully')
+
+
     def add_publisher(self):
         # first access the data entered throught the lineEdits.
         # this is similar to flask when trying to access the data using name = request.form.get('name')
@@ -188,6 +202,16 @@ class Main(QMainWindow, MainUI):
         )
         self.db.commit()
         print("-------------Publisher Added Successfully-------------")
+
+        # clear the lineEdit after insertion
+        self.lineEdit_34.clear()
+        self.lineEdit_35.clear()
+        self.lineEdit_56.clear()
+        self.lineEdit_57.clear()
+
+        # show successfully added Publisher
+        self.statusBar().showMessage('Publisher Added Successfully')
+
 
 
     def add_category(self):
@@ -216,6 +240,13 @@ class Main(QMainWindow, MainUI):
         self.load_all_categories()
         print('-------category added successfully----------')
 
+        # clear the lineEdit after insertion
+        self.lineEdit_36.clear()
+
+        # show successfully added Publisher
+        self.statusBar().showMessage('Category Added Successfully')
+
+
     def get_parent_category_id(self, parent):
         # this function is going to check if a parent category exist or not, if exist >>> return id
         parent_id = self.db.execute('SELECT id FROM category WHERE category_name = :var',
@@ -235,6 +266,8 @@ class Main(QMainWindow, MainUI):
         
         #before we load anything in the combobox, we should clear it to avoid the duplications happens due to this function called in the add_category()
         self.comboBox_11.clear()
+        self.comboBox_2.clear()
+        self.comboBox_7.clear()
 
         rows = self.db.execute('SELECT category_name FROM category').fetchall()
         if not rows:
@@ -245,9 +278,6 @@ class Main(QMainWindow, MainUI):
             self.comboBox_11.addItem(category.category_name)
             self.comboBox_2.addItem(category.category_name)
             self.comboBox_7.addItem(category.category_name)
-
-
-        print('Categories Loaded Successfully')
 
     
     def load_authors(self):
@@ -325,6 +355,16 @@ class Main(QMainWindow, MainUI):
         self.db.commit()
         print('-----------Author Added Successfully------------')
 
+        # clear the lineEdit after insertion
+        self.lineEdit_33.clear()
+        self.lineEdit_32.clear()
+        self.lineEdit_55.clear()
+
+        # show successfully added author
+        self.statusBar().showMessage('Author Added Successfully')
+
+
+
     def add_user(self):
         # access the data entered throught the lineedis.
         username = self.lineEdit_40.text()
@@ -362,10 +402,85 @@ class Main(QMainWindow, MainUI):
         else:
             self.statusBar().showMessage('The Password Is Not Matching')
             print('the password is not matching')
+    
+    def check_user(self):
+        # access the data entered by the user in the lineEdit
+        username = self.lineEdit_45.text()
+        password = self.lineEdit_50.text()
+
+        # check the data entered is correct or not
+        check_data = self.db.execute('SELECT name, password FROM employee WHERE name = :var1 AND password = :var2',
+            {
+                'var1': username,
+                'var2': password
+            }
+        ).fetchone()
         
+        if not check_data:
+            print('data provided is incorrect')
+            self.statusBar().showMessage('Incorrect Data')
+            self.lineEdit_45.clear()
+            self.lineEdit_50.clear()
+
+        else:
+            # get the rest data from the database for this user and display it into the lineEdits
+            data = self.db.execute('SELECT * FROM employee WHERE name = :var1 AND password = :var2',
+                {
+                    'var1': username,
+                    'var2': password
+                }
+            ).fetchone()
+
+            if not data:
+                print('there is fuckning error, Line 422')
+
+            # now display the data retrieved from the db in the lineEdits for editing it.
+            self.lineEdit_44.setText(data.phone)
+            self.lineEdit_47.setText(data.mail)
+            self.lineEdit_46.setText(data.national_id)
+            self.lineEdit_51.setText(data.password)
+
+            self.statusBar().showMessage('Correct User!')
+
 
     def edit_user(self):
-        pass
+        # now after the user edit the data, we have to access it again to update it into the db
+        phone = self.lineEdit_44.text()
+        email = self.lineEdit_47.text()
+        national_id = self.lineEdit_46.text()
+        password_after_update = self.lineEdit_51.text()
+
+        # query the db for this user id
+        user_id = self.db.execute('SELECT id FROM employee WHERE national_id = :var1',
+            {
+                'var1': national_id
+            }
+        ).fetchone()
+        if not user_id:
+            print('error Line 453')
+
+        self.db.execute('''
+            UPDATE employee
+            SET phone = :var1 AND
+                mail = :var2 AND
+                national_id = :var3 AND
+                password = :var4
+            WHERE
+                id = :var5
+        ''',
+            {
+                'var1': phone,
+                'var2': email,
+                'var3': national_id,
+                'var4': password_after_update,
+                'var5': user_id.id
+            }
+        )
+        db.commit()
+
+        print('data updated successfully')
+        self.statusBar().showMessage('User Data Updated Successfully')
+
 
     def permissions(self):
         pass
