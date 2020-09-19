@@ -461,9 +461,9 @@ class Main(QMainWindow, MainUI):
 
         self.db.execute('''
             UPDATE employee
-            SET phone = :var1 AND
-                mail = :var2 AND
-                national_id = :var3 AND
+            SET phone = :var1,
+                mail = :var2,
+                national_id = :var3,
                 password = :var4
             WHERE
                 id = :var5
@@ -476,10 +476,21 @@ class Main(QMainWindow, MainUI):
                 'var5': user_id.id
             }
         )
-        db.commit()
+        self.db.commit()
 
         print('data updated successfully')
         self.statusBar().showMessage('User Data Updated Successfully')
+
+        # clear all the lineEdits
+        # check
+        self.lineEdit_45.clear()
+        self.lineEdit_50.clear()
+
+        # edit
+        self.lineEdit_44.clear()
+        self.lineEdit_47.clear()
+        self.lineEdit_46.clear()
+        self.lineEdit_51.clear()
 
 
     def permissions(self):
