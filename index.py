@@ -458,39 +458,41 @@ class Main(QMainWindow, MainUI):
         ).fetchone()
         if not user_id:
             print('error Line 453')
+            self.statusBar().showMessage("Don't fuck with that fields")
 
-        self.db.execute('''
-            UPDATE employee
-            SET phone = :var1,
-                mail = :var2,
-                national_id = :var3,
-                password = :var4
-            WHERE
-                id = :var5
-        ''',
-            {
-                'var1': phone,
-                'var2': email,
-                'var3': national_id,
-                'var4': password_after_update,
-                'var5': user_id.id
-            }
-        )
-        self.db.commit()
+        else:
+            self.db.execute('''
+                UPDATE employee
+                SET phone = :var1,
+                    mail = :var2,
+                    national_id = :var3,
+                    password = :var4
+                WHERE
+                    id = :var5
+            ''',
+                {
+                    'var1': phone,
+                    'var2': email,
+                    'var3': national_id,
+                    'var4': password_after_update,
+                    'var5': user_id.id
+                }
+            )
+            self.db.commit()
 
-        print('data updated successfully')
-        self.statusBar().showMessage('User Data Updated Successfully')
+            print('data updated successfully')
+            self.statusBar().showMessage('User Data Updated Successfully')
 
-        # clear all the lineEdits
-        # check
-        self.lineEdit_45.clear()
-        self.lineEdit_50.clear()
+            # clear all the lineEdits
+            # check
+            self.lineEdit_45.clear()
+            self.lineEdit_50.clear()
 
-        # edit
-        self.lineEdit_44.clear()
-        self.lineEdit_47.clear()
-        self.lineEdit_46.clear()
-        self.lineEdit_51.clear()
+            # edit
+            self.lineEdit_44.clear()
+            self.lineEdit_47.clear()
+            self.lineEdit_46.clear()
+            self.lineEdit_51.clear()
 
 
     def permissions(self):
