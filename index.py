@@ -48,10 +48,10 @@ class Main(QMainWindow, MainUI):
 
     # create the functionality of the application.
     # we are going to create a method for each action can be performed on the system and connect it to the button
-    
+
     ''' handling the UI changes happens'''
     def ui_changes(self):
-        
+
         # make the login tab load the first.
         self.tabWidget.setCurrentIndex(0)
 
@@ -59,7 +59,7 @@ class Main(QMainWindow, MainUI):
         self.tabWidget.tabBar().setVisible(False)
 
 
-    
+
     ''' connnect to the database '''
     def connect_db(self):
         # create an engine using the environment variable to pass the database url
@@ -93,6 +93,8 @@ class Main(QMainWindow, MainUI):
         self.pushButton_32.clicked.connect(self.check_user)
         # save user after edining
         self.pushButton_31.clicked.connect(self.edit_user)
+        # add books
+        self.pushButton_9.clicked.connect(self.add_book)
 
     ''' lgoin tap '''
     def login(self):
@@ -109,7 +111,77 @@ class Main(QMainWindow, MainUI):
         pass
 
     def add_book(self):
-        pass
+        # access the data entered
+        title = self.lineEdit_2.text()
+        description = self.textEdit.toPlainText()
+        book_category = self.comboBox_2.currentText()
+        price = float(self.lineEdit_3.text())
+        code = self.lineEdit_4.text()
+        publisher = self.comboBox_3.currentText()
+        author = self.comboBox_4.currentText()
+        status = self.comboBox_9.currentIndex()
+        # image = to be solved
+
+        # query the database for the getting the IDs.
+        book_category_id = self.db.execute('SELECT id FROM category WHERE category_name = :var1',
+            {
+                'var1': book_category
+            }
+        ).fetchone()
+        if not book_category_id:
+            print('the selected category is not exist')
+            self.statusBar().showMessage('No such Category')
+
+        publisher_id = self.db.execute('SELECT id FROM publisher WHERE name = :var1',
+            {
+                'var1': publisher
+            }
+        ).fetchone()
+        if not publisher_id:
+            print('the selected publisher is not  exist')
+            self.statusBar().showMessage('No such Publisher')
+
+        author_id = self.db.execute('SELECT id FROM author WHERE name = :var1',
+            {
+                'var1': author
+            }
+        ).fetchone()
+        if not author_id:
+            print('the selected author is not exist')
+            self.statusBar().showMessage('No such Author')
+
+
+        # insert the data into the database.
+        self.db.execute('''
+            INSERT INTO
+                book(code, title, author_id, publisher_id, category_id, description, status, price)
+            VALUES(:var1, :var2, :var3, :var4, :var5, :var6, :var7, :var8)
+        ''',
+            {
+                'var1': code,
+                'var2': title,
+                'var3': author_id.id,
+                'var4': publisher_id.id,
+                'var5': book_category_id.id,
+                'var6': description,
+                'var7': status,
+                'var8': price
+            }
+        )
+        self.db.commit()
+        print('-------book added successfully---------')
+        self.statusBar().showMessage('Book Added Successfully')
+
+        # clear the data fields after the successfully insertion.
+        self.lineEdit_2.clear()
+        self.textEdit.clear()
+        self.comboBox_2.clear()
+        self.lineEdit_3.clear()
+        self.lineEdit_4.clear()
+        self.comboBox_3.clear()
+        self.comboBox_4.clear()
+        self.comboBox_9.clear()
+
 
     def edit_book(self):
         pass
@@ -142,7 +214,7 @@ class Main(QMainWindow, MainUI):
     def history(self):
         pass
 
-    
+
     ''' reports tap '''
     def top_books(self):
         pass
@@ -164,7 +236,7 @@ class Main(QMainWindow, MainUI):
         branch_address = self.lineEdit_30.text()
 
         # insert this data into the branch table in the database.
-        self.db.execute('INSERT INTO branch(code, name, address) VALUES(:var1, :var2, :var3)', 
+        self.db.execute('INSERT INTO branch(code, name, address) VALUES(:var1, :var2, :var3)',
                 {
                     'var1': int(branch_code),
                     'var2': branch_name,
@@ -217,7 +289,7 @@ class Main(QMainWindow, MainUI):
     def add_category(self):
         # access the data entered in the lineEdit and then insert into the database tabel category
         category_name = self.lineEdit_36.text()
-        
+
         # access the chioce(text) select from the combobox
         parent_category = self.comboBox_11.currentText()
 
@@ -235,7 +307,7 @@ class Main(QMainWindow, MainUI):
             }
         )
         self.db.commit()
-        
+
         # call the function below to instantly load the category after adding it
         self.load_all_categories()
         print('-------category added successfully----------')
@@ -263,7 +335,7 @@ class Main(QMainWindow, MainUI):
 
     def load_all_categories(self):
         # this function only purpose in life is to load the categories form the database to the parent category combobox in teh settings tab
-        
+
         #before we load anything in the combobox, we should clear it to avoid the duplications happens due to this function called in the add_category()
         self.comboBox_11.clear()
         self.comboBox_2.clear()
@@ -279,9 +351,9 @@ class Main(QMainWindow, MainUI):
             self.comboBox_2.addItem(category.category_name)
             self.comboBox_7.addItem(category.category_name)
 
-    
+
     def load_authors(self):
-        
+
         authors = self.db.execute('SELECT name FROM author').fetchall()
         if not authors:
             print('no authors yet')
@@ -292,7 +364,7 @@ class Main(QMainWindow, MainUI):
 
 
     def load_publishers(self):
-        
+
         publishers = self.db.execute('SELECT name FROM publisher').fetchall()
         if not publishers:
             print('No publishers yet')
@@ -303,7 +375,7 @@ class Main(QMainWindow, MainUI):
 
 
     def load_branches(self):
-        
+
         branches = self.db.execute('SELECT name FROM branch').fetchall()
         if not branches:
             print('No branches yet')
@@ -314,7 +386,7 @@ class Main(QMainWindow, MainUI):
 
 
     def load_users(self):
-        
+
         users = self.db.execute('SELECT name FROM employee').fetchall()
         if not users:
             print('No Employees yet')
@@ -324,14 +396,14 @@ class Main(QMainWindow, MainUI):
 
 
     def load_tables(self):
-        
+
         # we could use a python list instead of this query and it will work
         tables = self.db.execute('''SELECT table_name
                             FROM information_schema.tables
                             WHERE table_schema = 'public'
                             ORDER BY table_name
                     ''').fetchall()
-        
+
         for table in tables:
             self.comboBox_14.addItem(table.table_name)
 
@@ -402,7 +474,7 @@ class Main(QMainWindow, MainUI):
         else:
             self.statusBar().showMessage('The Password Is Not Matching')
             print('the password is not matching')
-    
+
     def check_user(self):
         # access the data entered by the user in the lineEdit
         username = self.lineEdit_45.text()
@@ -415,7 +487,7 @@ class Main(QMainWindow, MainUI):
                 'var2': password
             }
         ).fetchone()
-        
+
         if not check_data:
             print('data provided is incorrect')
             self.statusBar().showMessage('Incorrect Data')
@@ -565,6 +637,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
-
-
